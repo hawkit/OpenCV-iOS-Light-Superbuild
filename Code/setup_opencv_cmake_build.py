@@ -4,8 +4,11 @@ from __future__ import print_function
 import glob, re, os, os.path, shutil, string, sys, argparse, traceback, multiprocessing
 from subprocess import check_call, check_output, CalledProcessError
 
+IPHONEOS_DEPLOYMENT_TARGET='8.0'  # default, can be changed via command line options or environemnt variable
+
 def execute(cmd, cwd = None):
     print("Executing: %s in %s" % (cmd, cwd), file=sys.stderr)
+    print('Executing: ' + ' '.join(cmd))
     retcode = check_call(cmd, cwd = cwd)
     if retcode != 0:
         raise Exception("Child returned:", retcode)
@@ -124,7 +127,7 @@ class Builder:
 
         if self.dynamic:
             buildcmd += [
-                "IPHONEOS_DEPLOYMENT_TARGET=8.0",
+                "IPHONEOS_DEPLOYMENT_TARGET=" + os.environ['IPHONEOS_DEPLOYMENT_TARGET'],
                 "ONLY_ACTIVE_ARCH=NO",
             ]
 
@@ -137,7 +140,7 @@ class Builder:
         else:
             arch = ";".join(archs)
             buildcmd += [
-                "IPHONEOS_DEPLOYMENT_TARGET=8.0",
+                "IPHONEOS_DEPLOYMENT_TARGET=" + os.environ['IPHONEOS_DEPLOYMENT_TARGET'],
                 "ARCHS=%s" % arch,
             ]
 
@@ -159,7 +162,7 @@ class Builder:
         cmakecmd = self.getCMakeArgs(arch, target) + \
             (["-DCMAKE_TOOLCHAIN_FILE=%s" % toolchain] if toolchain is not None else [])
         if target.lower().startswith("iphoneos"):
-            cmakecmd.append("-DCPU_BASELINE=NEON;FP16")
+            cmakecmd.append("-DCPU_BASELINE=DETECT")
         cmakecmd.append(self.opencv)
         cmakecmd.extend(cmakeargs)
         execute(cmakecmd, cwd = builddir)
@@ -253,6 +256,7 @@ if __name__ == "__main__":
     parser.add_argument('--without', metavar='MODULE', default=[], action='append', help='OpenCV modules to exclude from the framework')
     parser.add_argument('--dynamic', default=False, action='store_true', help='build dynamic framework (default is "False" - builds static framework)')
     parser.add_argument('--disable-bitcode', default=False, dest='bitcodedisabled', action='store_true', help='disable bitcode (enabled by default)')
+    parser.add_argument('--iphoneos_deployment_target', default=os.environ.get('IPHONEOS_DEPLOYMENT_TARGET', IPHONEOS_DEPLOYMENT_TARGET), help='specify IPHONEOS_DEPLOYMENT_TARGET')
     parser.add_argument('--armv7-arch', default=False, dest='include_armv7_arch', action='store_true', help='include armv7 architecture')
     parser.add_argument('--armv7s-arch', default=False, dest='include_armv7s_arch', action='store_true', help='include armv7s architecture')
     parser.add_argument('--arm64-arch', default=True, dest='include_arm64_arch', action='store_true', help='include arm64 architecture (the script builds arm64 arch by default')
@@ -260,6 +264,9 @@ if __name__ == "__main__":
     parser.add_argument('--x86_64-arch', default=False, dest='include_x86_64_arch', action='store_true', help='include x86_64 architecture')
 
     args = parser.parse_args()
+
+    os.environ['IPHONEOS_DEPLOYMENT_TARGET'] = args.iphoneos_deployment_target
+    print('Using IPHONEOS_DEPLOYMENT_TARGET=' + os.environ['IPHONEOS_DEPLOYMENT_TARGET'])
 
     archs = []
 

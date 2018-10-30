@@ -14,13 +14,13 @@ read source_code
 case "$source_code" in
   [yY][eE][sS]|[yY])
   printf "\n"
-  echo "Please enter the path to ${magenta}OpenCV${nocolor} ${yellow}sources folder${nocolor}. [For example '${green}../opencv${nocolor}']"
+  echo "Please enter the path to ${magenta}OpenCV${nocolor} ${yellow}sources folder${nocolor}. [For example '${green}../../opencv/${nocolor}']"
   read sources_folder
   opencv_sources_folder=$sources_folder
   ;;
   *)
   printf "\n"
-  echo "OK, let's download the source code from ${yellow}GitHub${nocolor}. Please enter the path to ${yellow}save-to directory${nocolor}. [For example '${green}opencv_sources/${nocolor}']"
+  echo "OK, let's download the source code from ${yellow}GitHub${nocolor}. Please enter the path to ${yellow}save-to directory${nocolor}. [For example '${green}../../opencv/${nocolor}']"
   read download_folder
   # Refresh download folder
   sudo rm -rf $download_folder
@@ -33,7 +33,7 @@ case "$source_code" in
 esac
 
 printf "\n"
-echo -e "Please, enter the path to the temporary build folder. [For example '${green}build_folder/${nocolor}']"
+echo -e "Please, enter the path to the temporary build folder. [For example '${green}../../opencv-ios-lite-build${nocolor}']"
 read build_folder
 # Refresh build folder
 sudo rm -rf $build_folder
